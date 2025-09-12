@@ -15,6 +15,9 @@
 #import "@preview/codly-languages:0.1.1": *
 #show: codly-init
 
+// extra icons
+#import "@preview/fontawesome:0.6.0": *
+
 #codly(
   languages: (
     gd: (
@@ -27,6 +30,10 @@
 
 #set heading(
   numbering: "1.1",
+)
+
+#set smartquote(
+  quotes: sym.quote.l + sym.quote.r
 )
 
 // set main font and language
@@ -60,11 +67,16 @@
 // make table captions on top (default is bottom)
 #show figure.where(kind: table): set figure.caption(position: top)
 
-// custom note() function for notes
-#let note(x) = rect(width: 100%)[
-  #align(center)[*Megjegyzés*]
+// links to documentation
+#let docs(path, txt) = box(link("https://janossandor2002.github.io/SzakGyak/" + path)[
+  #set text(blue)
+  #txt
+])
 
-  #x
+#let commit(hash) = box[
+  #set text(blue)
+  #let short-hash = hash.slice(0, 7)
+  #link("https://github.com/JanosSandor2002/SzakGyak/commit/" + hash, text(0.9em, fa-icon("git-alt")) + sym.space.med + raw(short-hash))
 ]
 
 // cover page
@@ -115,25 +127,70 @@ szerkesztő, amely megkönnyíti a jelenetek és erőforrások kezelését.
 
 = A tervezés folyamata
 
-A részfeladatokat úgy általában mindenkinek a saját szemszögéből kellene
-bemutatnia, kihangsúlyozva a saját részt.
+A projekt tervezése során a feladatokat igyekeztünk átláthatóan és egyenletesen
+elosztani egymás között, ugyanakkor mindenkinek lehetősége volt a saját érdeklődési
+körének és erősségeinek megfelelően hozzájárulni a közös munkához. A folyamat során
+a rendszeres megbeszélések és konzultációk biztosították, hogy a dokumentáció és
+a fejlesztés egységes irányt kövessen.
 
-== Előkészületek
+== Dokumentáció
 
-Ezt csak úgy példának írtam, hogy lehet szépen strukturálni a
-dokumentumot.
+Az első időszakban főként az adminisztratív feladatokra koncentráltunk: közösen
+megbeszéltük a kezdeti dokumentáció felépítését, valamint felosztottuk a
+feladatokat. Ezt követően sor került a verziókövetéshez szükséges eszközök
+(git, GitHub) és a dokumentációs környezet (MkDocs) beállítására, illetve
+a projekt weboldalának elkészítésére. Ezekhez a munkákhoz személyesen is
+hozzájárultam, különösen az MkDocs beüzemelésével (#commit("2534f040bfb43abab5b17724184ebf690d2dd58f")).
 
-=== Telepítés
+A tervezési fázis másik fontos része a közös vízió megalkotása és felosztása volt.
+Ezekhez aktívan részt vettem a megbeszéléseken, ahol a felmerülő ötletek alapján
+javaslatokat dolgoztunk ki, majd kidolgoztam a rendszer lehetséges
+megoldásait és a funkcionális, valamint nem funkcionális követelményeket (#commit("6e34a5ad977cf5f30958ae519f3f9414787c71c6")).
+Emellett közreműködtem az SRS dokumentum "Bevezetés", "Áttekintés", és "Használhatóság" részeinek
+megírásában (#commit("6dee4b4ac00414dd2861886a3f7e7ea8c1ce2db9")), az @fig:components elkészítésével, valamint a
+kezdeti formázási és technikai hibák javításában (#commit("b720b3985090bcfeaf85b58573f83c9c8b35b055")).
+
+#figure(
+  caption: [A játék fő alrendszereinek komponensdiagramja és azok kapcsolatai],
+  image("images/components.svg"),
+) <fig:components>
+
+== Telepítés
 
 A Godot telepítését a `dnf install godot` parancs segítségével végeztem
 el.
+
+== Fejlesztés
+
+A későbbiekben a hangsúly fokozatosan a gyakorlati fejlesztés előkészítésére helyeződött.
+Részt vettem a Godot mappastruktúrájának megtervezésében és a scenes rendszer
+átbeszélésében. Különösen hasznosnak bizonyultak ezek a megbeszélések, hiszen
+segítettek abban, hogy a későbbi fejlesztési munkák egységes alapokra épüljenek.
+
+A menürendszer mellett a HUD felület, a mentéskezelő és a beállítási rendszer
+(#commit("0225e118ab3397fae12ac6afce762871863283e6"),
+#commit("739f471ca3ede44288706c2369f3e5327c9502e9"),
+#commit("13674a29b840daab9af4a9b9c3e28d4ec8997546"),
+#commit("df1a05dd0e84c8f90475773065d4f31486cb5970"))
+kialakítását is én végeztem. Ez utóbbi nemcsak a felhasználói beállítások mentését
+biztosította, hanem a hangkezelő rendszert is: a program a felhasználó által választott
+hangerőszinteket elmentette, majd automatikusan a megfelelő Godot audióbuszokra állította be,
+biztosítva a játék testreszabható és konzisztens hangélményét.
+
+A projekt keretében sajnos nem sikerült a játék teljes funkcionalitását
+megvalósítani, így a fejlesztett modulok jelenleg csak a demó jellegű részeket
+tartalmazzák.
+Ennek ellenére a kialakított rendszerek stabil alapot nyújtanak a további
+bővítéshez és teszteléshez, valamint a fejlesztési folyamat során szerzett
+tapasztalatok értékesek a jövőbeli munkák szempontjából.
 
 = Implementáció
 
 == Mentési Rendszer
 
 A játékon belüli mentések kezelésére saját mentési rendszert dolgozotunk ki,
-amelynek megvalósítását én vállaltam. A megoldás alapja két függvény:
+amelynek megvalósítását én vállaltam (#commit("4a2df1dde16e45bd6ae0d93febf4776f924d49fc")).
+A megoldás alapja két függvény:
 
 ```gd
 func save_state(
@@ -144,7 +201,7 @@ func save_state(
 func load_state(ns: StringName) -> Dictionary
 ```
 
-Az `ns` paraméter egyfajta névtérként (namespace) működik, így a játék különböző
+Az ```gd ns``` paraméter egyfajta névtérként (namespace) működik, így a játék különböző
 részei elkülönítve tárolhatják az állapotukat. A ```gd load_state()```
 visszaadja az adott névtérhez korábban elmentett adatokat, vagy üres szótárat,
 ha még nincs tárolt állapot.
@@ -154,11 +211,25 @@ majd átnevezés után válnak érvényessé. Így biztosítható, hogy vagy a t
 mentés, vagy a korábbi állapot maradjon meg, elkerülve a fájlok részleges
 korruptálódását.
 
-#note[A ```gd load_state()``` korábban ```gd Dictionary[StringName, Variant]``` típust
-adott vissza, de a betöltés során felmerülő típusproblémák miatt végül sima
-```gd Dictionary```-ként valósítottuk meg. Ez lehetővé tette a hibamentes
-betöltést, miközben a különböző névterek elkülönítése továbbra is biztosított
-maradt.]
+A mentések JSON formátumban kerülnek tárolásra. A legfelső szint egy
+objektum, amelyben minden kulcs a megfelelő ```gd ns``` névtérnek felel meg.
+A `__meta` egy speciális kulcs, amely a mentéshez tartozó metaadatokat
+(rögzítés ideje, utolsó módosítás időpontja, felhasználónév stb.) tartalmazza.
+
+```json
+{
+  "__meta": {
+    "ctime": "2025-09-12 19:51:40",
+    "mtime": "2025-09-12 19:56:09",
+    "name": "LaptopGamer"
+  },
+  "shop": {
+    "correct_answers": 0
+  }
+}
+
+
+```
 
 == Menürendszer
 
@@ -168,7 +239,7 @@ a beállításokat, a mentések kezelését és a figyelmeztető üzeneteket.
 
 A struktúra a következőképpen épült fel:
 
-#no-codly[```
+#no-codly[#block(breakable: false)[```
 /scenes/menu/
 ├── hud_entry_family.{gd,tscn}
 ├── hud_entry_player.{gd,tscn}
@@ -180,31 +251,102 @@ A struktúra a következőképpen épült fel:
 ├── save_select_menu.{gd,tscn}
 ├── settings_menu.{gd,tscn}
 └── warn_menu.{gd,tscn}
-```]
+```]]
 
 A menük logikáját GDScript-ben implementáltam, a különböző jelenetek
 érintkezését és a felhasználói interakciók kezelését biztosítva. A menürendszer
 tartalmazza a mentések kiválasztását és létrehozását, a beállítások módosítását,
 valamint a különböző HUD elemeket, melyek dinamikusan frissülnek a játék
-állapota szerint.
+állapota szerint. A menürendszer vizuális felépítését és egyes nézeteit az
+@fig:menu és @fig:hud szemlélteti.
+
+#figure(
+  caption: [A játék menürendszerének fő nézetei, beleértve a főmenüt, a mentéskezelőt és a beállítási lehetőségeket],
+  grid(
+    columns: 3,
+    gutter: 1em,
+    ..for i in range(1, 7) {
+      (image("images/menu-0" + str(i) + ".png"),)
+    },
+  ),
+) <fig:menu>
+
+#figure(
+  caption: [A játék futás közben megjelenő HUD felülete Piotr (játékos) és Mihalina (családtag) karakterrel],
+  grid(
+    columns: 2,
+    gutter: 1em,
+    image("images/hud-piotr.png"),
+    image("images/hud-mihalina.png"),
+  ),
+) <fig:hud>
 
 === Menürendszer részletesen
 
-A projekt menürendszerét teljes egészében én valósítottam meg a Godot-ban.
-A rendszer a játék különböző felületeit kezeli, beleértve a főmenüt, a beállításokat,
-a mentések kezelését és a figyelmeztető üzeneteket. Az egyes elemek a következő feladatokat látják el:
+Az egyes elemek a következő feladatokat látják el:
 
 - `hud_entry_family.{gd,tscn}`: Egy családhoz tartozó HUD elemek megjelenítése, az aktuális tag állapotának vizualizálása.
 - `hud_entry_player.{gd,tscn}`: A játékos karakterének állapotát mutatja a HUD-on, beleértve életpontokat és egyéb státuszokat.
 - `hud.{gd,tscn}`: A teljes HUD menedzsmentjét végzi, összehangolja az összes HUD-elem frissítését.
 - `main_menu.{gd,tscn}`: A főmenüt valósítja meg, innen lehet új játékot indítani, betöltést kezdeményezni, vagy a beállításokat elérni.
-- `new_save_menu.{gd,tscn}`: Új mentés létrehozására szolgáló felület, ahol a játékos kiválaszthatja a mentés nevét és helyét.
 - `save_delete_confirm.{gd,tscn}`: Mentés törlésének megerősítő párbeszédpanelje, biztonsági ellenőrzéssel.
 - `save_entry.{gd,tscn}`: Egyetlen mentés bejegyzésének reprezentációja a mentésválasztó menüben.
 - `save_select_menu.{gd,tscn}`: A mentések listázását és kiválasztását biztosító felület.
-- `settings_menu.{gd,tscn}`: A játék beállításait kezelő menü, beleértve hang, grafika és egyéb konfigurációk módosítását.
-- `warn_menu.{gd,tscn}`: Tartalmi figyelmeztetések megjelenítésére szolgáló felület, amely a játék elején jelenik meg a szocialista témájú tartalom miatt.
+- `settings_menu.{gd,tscn}`: A játék beállításait kezelő felület, amely a hang-, grafikai és egyéb konfigurációk módosítását teszi lehetővé.
+  A menü a ```gd GameSettings``` globális változó segítségével kezeli a beállításokat, és biztosítja azok betöltését és mentését.
+  A hangbeállítások (master, SFX, zene, UI) a megfelelő audióbuszokra kerülnek alkalmazásra, így a változtatások azonnal érvényesülnek.
+  A grafikai opciók között a videó minősége, animációk engedélyezése és betűtípus választás szerepel.
+  A "Back" gomb a módosítások mentése után visszatér a szülő menübe.
 
+- `new_save_menu.{gd,tscn}`: Az új mentés létrehozására szolgáló felület.
+  A játékos itt megadhatja a mentés nevét és fájlazonosítóját, amelyeket a rendszer automatikusan megtisztít (szóközök, kis-/nagybetűk kezelése) és ellenőriz egy reguláris kifejezés alapján.
+  A menü hibakezelést is biztosít: üres név vagy fájlnév esetén, érvénytelen fájlnév használatakor, illetve már létező mentés esetén a felület hibaüzeneteket jelenít meg.
+  Sikeres létrehozáskor a ```gd SaveManager``` új mentést hoz létre, és a szülő menü értesítést kap a lista frissítéséről.
+
+== Beállításkezelő Rendszer
+
+A ```gd GameSettings``` modul felelős a játék globális konfigurációs
+paramétereinek kezeléséért, ideértve a hang-, grafikai- és nyelvi beállításokat.
+A modul biztosítja, hogy a felhasználó által végrehajtott változtatások a menün
+keresztül vagy manuálisan a `settings.ini` fájl szerkesztésével is
+érvényesüljenek.
+
+A beállítások mentése atomikusan történik, pont úgy mint a mentéseknél.
+
+A modul felel a hangbeállítások alkalmazásáért is: a felhasználó által megadott
+hangerőszinteket automatikusan a megfelelő Godot audióbuszokra állítja.
+
+A ```gd GameSettings``` a @tbl:game-settings által felsorolt beállításokat
+kezeli.
+
+#figure(
+  caption: [A játék `settings.ini` fájljában tárolt beállítási lehetőségei],
+  table(
+    columns: (auto, auto, 1fr, auto),
+    align: center + horizon,
+    [*Név*], [*Típus*], [*Leírás*], [*Alapértelmezett*],
+
+    `[volume]`, [], [Hangerő szabályok], [],
+    `master`, `int [0, 100]`, [Master hangerő], `40`,
+    `sfx`, `int [0, 100]`, [Effektusok hangereje], `100`,
+    `music`, `int [0, 100]`, [Háttérzene hangereje], `100`,
+    `ui`, `int [0, 100]`, [UI hangereje], `100`,
+
+    `[video]`, [], [Grafikai beállítások], [],
+    `quality`, [`low`, `medium`, `high`], [Grafika minőség], `medium`,
+    `animations`, `bool`, [UI animációk engedélyezése], `true`,
+    `font`, [`pixel`, `readable`], [Betűtípus], `pixel`,
+
+    `[main]`, [], [Egyéb beállítások], [],
+    `lang`, `string`, [Játék nyelve], `ask`,
+    `content-warn-ack`, `bool`, [Tartalom figyelmeztetés elfogadva], `false`,
+  ),
+) <tbl:game-settings>
+
+A `content-warn-ack` beállítás különleges jelentőséggel bír: a játék indításához
+a tartalomfigyelmeztetés elfogadása kötelező. Ha a felhasználó még nem fogadta
+el, a játék indításakor a figyelmeztetés megjelenik, és elfogadása után többé
+nem kerül bemutatásra.
 
 = Tesztelés
 
@@ -216,7 +358,8 @@ rendszer ellenőrzését.
 
 == Állapotmentési rendszert ellenőrző tesztek
 
-Az általam készített tesztek a ```gd SaveManager``` működését vizsgálták. A tesztek célja
+Az általam készített tesztek a ```gd SaveManager``` működését vizsgálták (#commit("a75a868bfc31b29ecabe1a76dfcb875d7305168a")).
+A tesztek célja
 az volt, hogy ellenőrizzük a mentések létrehozását, betöltését, az adatok
 helyes tárolását és a fájlok törlését. Ezek a tesztek biztosították, hogy a
 mentések atomikusan történjenek, és a betöltött adatok megegyezzenek a
@@ -232,13 +375,13 @@ A tesztek főbb ellenőrzéseit a @tbl:tests tartalmazza.
     align: (center + horizon, left),
 
     //table.cell(colspan: 2)[*Mentés létrehozása*],
-    `test_save_create`, [Ellenőrzi, hogy a SaveManager képes-e új mentésfájlokat létrehozni, és hogy a fájlok valóban megjelennek a mentési könyvtárban.],
+    `test_save_create`, [Ellenőrzi, hogy a ```gd SaveManager``` képes-e új mentésfájlokat létrehozni, és hogy a fájlok valóban megjelennek a mentési könyvtárban.],
 
     //table.cell(colspan: 2)[*Mentés metaadatok létezése*],
-    `test_save_meta_exists`, [Ellenőrzi, hogy a mentésekhez tartozó metaadatok, például a mentés neve és fájlazonosítója, helyesen kerülnek-e nyilvántartásra, és lekérhetők-e a SaveManager listázó függvényével.],
+    `test_save_meta_exists`, [Ellenőrzi, hogy a mentésekhez tartozó metaadatok, például a mentés neve és fájlazonosítója, helyesen kerülnek-e nyilvántartásra, és lekérhetők-e a ```gd SaveManager``` listázó függvényével.],
 
     //table.cell(colspan: 2)[*Mentés betöltése*],
-    `test_save_load_file`, [Teszteli, hogy egy meglévő mentésfájl sikeresen betölthető, és a SaveManager a megfelelő státuszkóddal tér vissza.],
+    `test_save_load_file`, [Teszteli, hogy egy meglévő mentésfájl sikeresen betölthető, és a ```gd SaveManager``` a megfelelő státuszkóddal tér vissza.],
 
     //table.cell(colspan: 2)[*Adatok tárolása és betöltése*],
     `test_store_and_load_data`, [Ellenőrzi, hogy a különböző névterek (namespace) használatával tárolt adatok pontosan visszaállíthatók legyenek, beleértve a számokat és listákat is.],
@@ -250,7 +393,7 @@ A tesztek főbb ellenőrzéseit a @tbl:tests tartalmazza.
 
 == Egyéb tesztek
 
-Az általam készített SaveManager teszteken kívül a csapat többi tagja is írt
+Az általam készített ```gd SaveManager``` teszteken kívül a csapat többi tagja is írt
 automatizált teszteket, amelyek a játék különböző moduljainak működését
 ellenőrzik. Ezek főbb jellemzőit a @tbl:other-tests foglalja össze.
 
@@ -285,10 +428,25 @@ rename("/home/laptopgamer/.local/share/godot/app_userdata/SzakGyak/settings.ini.
   )
 ) <tbl:other-tests>
 
-
 = Összegzés
 
-Ide érdemes leírni a munkálatokkal kapcsolatos tapasztalatokat.
+A fejlesztési folyamat során számos új ismeretre és tapasztalatra tettem szert.
+Kiemelt jelentősége volt a csapatmunkának: megtanultam, hogyan lehet hatékonyan
+együttműködni másokkal, egységes fejlesztési alapokat lefektetni, valamint közös
+döntéseket hozni a projekt irányáról.
+
+Technikai téren sokat fejlődtem a grafikus felhasználói felületek tervezésében
+és megvalósításában, valamint a Godot motor scene- és node-alapú
+architektúrájának és a GDScript szignálrendszerének mélyebb megértésében.
+Emellett új ismereteket szereztem a dinamikus node-kezelés, a nemzetköziesítés
+(i18n), illetve a verziókezelési folyamatok kapcsán is.
+Utóbbinál különösen hasznosnak bizonyult a git eszköztár mélyebb megismerése,
+például a `git stash` és a `git add -p` funkciók alkalmazása.
+
+A projekt egyik legfontosabb tanulsága az volt számomra, hogy a fejlesztési
+feladatok időigényét rendszerint könnyű alábecsülni. Ez a felismerés hozzájárult
+ahhoz, hogy a jövőben tudatosabban és reálisabban tervezzek a feladatok időbeli
+ütemezésével kapcsolatban.
 
 #pagebreak(weak: true)
 #bibliography("beszamolo.bib", title: "Hivatkozások")
